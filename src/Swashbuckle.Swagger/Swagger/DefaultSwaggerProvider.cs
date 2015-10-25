@@ -78,7 +78,7 @@ namespace Swashbuckle.Swagger
 
             // Group further by http method
             var perMethodGrouping = apiDescriptions
-                .GroupBy(apiDesc => apiDesc.HttpMethod.ToLower());
+                .GroupBy(apiDesc => apiDesc.HttpMethod?.ToLower()??"GET");
 
             foreach (var group in perMethodGrouping)
             {

@@ -20,7 +20,6 @@ namespace Basic
             // Uncomment the following line to add Web API services which makes it easier to port Web API 2 controllers.
             // You will also need to add the Microsoft.AspNet.Mvc.WebApiCompatShim package to the 'dependencies' section of project.json.
             // services.AddWebApiConventions();
-
             services.AddSwagger();
             services.ConfigureSwaggerDocument(options =>
             {
@@ -45,7 +44,7 @@ namespace Basic
         {
             // Configure the HTTP request pipeline.
             app.UseStaticFiles();
-
+            app.UseIISPlatformHandler();
             // Add MVC to the request pipeline.
             app.UseMvc();
 

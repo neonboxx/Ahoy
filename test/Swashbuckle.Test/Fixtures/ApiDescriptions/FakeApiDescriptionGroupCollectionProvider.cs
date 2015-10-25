@@ -11,6 +11,10 @@ using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
 using Moq;
+using Microsoft.AspNet.Mvc.Controllers;
+using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.ActionConstraints;
+using Microsoft.AspNet.Mvc.Formatters;
 
 namespace Swashbuckle.Swagger.Fixtures.ApiDescriptions
 {
@@ -26,6 +30,8 @@ namespace Swashbuckle.Swagger.Fixtures.ApiDescriptions
         public FakeApiDescriptionGroupCollectionProvider Add(
             string httpMethod, string routeTemplate, string actionFixtureName)
         {
+            var test = ControllerActionDescriptorBuilder.Build(new Microsoft.AspNet.Mvc.ApplicationModels.ApplicationModel());
+            
             _actionDescriptors.Add(CreateActionDescriptor(httpMethod, routeTemplate, actionFixtureName));
             return this;
         }
@@ -44,7 +50,10 @@ namespace Swashbuckle.Swagger.Fixtures.ApiDescriptions
             string httpMethod, string routeTemplate, string actionFixtureName)
         {
             var descriptor = new ControllerActionDescriptor();
-            descriptor.SetProperty(new ApiDescriptionActionData());
+            var action = new ApiDescriptionActionData();
+            action.GroupName = "Test";
+
+            descriptor.SetProperty(action);
             descriptor.DisplayName = actionFixtureName;
 
             descriptor.ActionConstraints = new List<IActionConstraintMetadata>
@@ -71,7 +80,7 @@ namespace Swashbuckle.Swagger.Fixtures.ApiDescriptions
             var attributes = descriptor.MethodInfo.GetCustomAttributes(true);
             descriptor.Properties.Add("ActionAttributes", attributes);
             descriptor.Properties.Add("IsObsolete", attributes.OfType<ObsoleteAttribute>().Any());
-
+            descriptor.RouteConstraints = new List<RouteDataActionConstraint>();
             return descriptor;
         }
 
@@ -83,7 +92,7 @@ namespace Swashbuckle.Swagger.Fixtures.ApiDescriptions
             options.OutputFormatters.Add(new JsonOutputFormatter());
 
             var optionsAccessor = new Mock<IOptions<MvcOptions>>();
-            optionsAccessor.Setup(o => o.Options).Returns(options);
+            optionsAccessor.Setup(o => o.Value).Returns(options);
 
             var constraintResolver = new Mock<IInlineConstraintResolver>();
             constraintResolver.Setup(i => i.ResolveConstraint("int")).Returns(new IntRouteConstraint());
@@ -104,7 +113,7 @@ namespace Swashbuckle.Swagger.Fixtures.ApiDescriptions
             var metadataDetailsProvider = new DefaultCompositeMetadataDetailsProvider(
                 new IMetadataDetailsProvider[]
                 {
-                    new DefaultBindingMetadataProvider(),
+                    new DefaultBindingMetadataProvider(new ModelBindingMessageProvider()),
                     new DataAnnotationsMetadataProvider()
                 }
             );
